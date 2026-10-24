@@ -11,7 +11,7 @@ jobs:
       - name: ftp-deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
-          server: fm555.xsph.ru
-          username: fm555
+          server: fn555.xsph.ru
+          username: fn555
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ./domains/fm555.xsph.ru/public_html/web/
+          server-dir: ./domains/fn555.xsph.ru/public_html/web/
