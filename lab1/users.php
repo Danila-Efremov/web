@@ -39,8 +39,8 @@ print_r($user->getInfo());
 
 echo "<div class='stats'>";
 echo "<h3>Статистика:</h3>";
-echo "<p><strong>Всего пользователей:</strong> " . User::$userCount . "</p>";
-echo "<p><strong>Супер-пользователей:</strong> " . SuperUser::$superUserCount . "</p>";
+echo "<p><strong>Всего обычных пользователей:</strong> " . User::$userCount . "</p>";
+echo "<p><strong>Всего супер-пользователей:</strong> " . SuperUser::$superUserCount . "</p>";
 echo "</div>";
 
 unset($user1);
