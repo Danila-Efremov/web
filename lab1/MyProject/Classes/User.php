@@ -5,7 +5,6 @@ namespace MyProject\Classes;
 
 class User extends AbstractUser
 {
-
     public $name;
     public $login;
     private $password;
@@ -25,6 +24,16 @@ class User extends AbstractUser
         $this->login = $login;
         $this->password = $password;
 
+        $this->register();
+    }
+
+    /**
+     * Регистрирует пользователя в счётчике.
+     * Переопределяется в наследниках, чтобы не увеличивать
+     * счётчик обычных пользователей.
+     */
+    protected function register(): void
+    {
         self::$userCount++;
     }
 
@@ -33,17 +42,17 @@ class User extends AbstractUser
      *
      * @return string - Возвращает строкой HTML-блок с информацией о пользователе
      */
-    public function showInfo(): string   {
+    public function showInfo(): string
+    {
         return "<div class=\"user-info\">
                     <h3>User Info</h3>
                     <p><strong>Name:</strong> {$this->name}</p>
                     <p><strong>Login:</strong> {$this->login}</p>
                 </div>";
-    }   
+    }
 
     /**
      * Деструктор класса User.
-     * Выводит сообщение об удалении пользователя.
      */
     public function __destruct()
     {
