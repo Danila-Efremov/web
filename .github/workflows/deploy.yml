@@ -14,4 +14,4 @@ jobs:
           server: fm555.xsph.ru
           username: fm555
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ./domains/fm555.xsph.ru/public_html/web
+          server-dir: ./domains/fm555.xsph.ru/public_html/web/
