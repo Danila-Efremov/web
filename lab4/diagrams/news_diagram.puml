@@ -51,6 +51,6 @@
   IteratorAggregate <|-- NewsDB
   Iterator <|-- NumbersSquared
   Iterator <|.. ArrayIterator
-  NewsDB *-- SQLite3
+  NewsDB *--> SQLite3
   NewsDB ..> ArrayIterator : <<create>>
 @enduml
