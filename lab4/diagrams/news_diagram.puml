@@ -17,7 +17,7 @@
     +getIterator()
   }
 
-  class "NewsDB\n<b>Класс NewsDB</b>" as NewsDB {
+  class "NewsDB\n<b>NewsDB class</b>" as NewsDB {
     +DB_NAME : string
     -_db : SQLite3
     -items : array
@@ -31,7 +31,7 @@
     +deleteNews(id)
   }
 
-  class "NumbersSquared\n<b>Класс NumbersSquared</b>" as NumbersSquared {
+  class "NumbersSquared\n<b>NumbersSquared class</b>" as NumbersSquared {
     -start : int
     -end : int
     -current : int
@@ -43,9 +43,9 @@
     +current()
   }
 
-  class "SQLite3\n<b>Встроенный класс PHP</b>" as SQLite3
+  class "SQLite3\n<b>PHP built-in class</b>" as SQLite3
 
-  class "ArrayIterator\n<b>Встроенный класс PHP</b>" as ArrayIterator
+  class "ArrayIterator\n<b>PHP built-in class</b>" as ArrayIterator
 
   INewsDB <|-- NewsDB
   IteratorAggregate <|-- NewsDB
