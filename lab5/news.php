@@ -38,7 +38,7 @@ $rssExists = file_exists(NewsDB::RSS_NAME);
 	</h1>
 
 	<p>
-		<a href="../" class="back-link">На главную</a>
+		<a href="../index.html" class="back-link">На главную</a>
 		<a href="uml.html" class="uml-link">Диаграмма классов</a>
 	</p>
 
