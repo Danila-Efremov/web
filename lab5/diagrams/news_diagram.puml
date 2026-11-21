@@ -44,7 +44,7 @@
   INewsDB <|-- NewsDB
   IteratorAggregate <|-- NewsDB
   Iterator <|.. ArrayIterator
-  NewsDB *-- SQLite3
+  NewsDB *--> SQLite3
   NewsDB ..> ArrayIterator : <<create>>
   NewsDB ..> DOMDocument : <<create>>
 @enduml
