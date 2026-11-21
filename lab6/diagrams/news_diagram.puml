@@ -44,7 +44,7 @@
   INewsDB <|-- NewsDB
   IteratorAggregate <|-- NewsDB
   Iterator <|.. ArrayIterator
-  NewsDB *-- PDO
+  NewsDB *--> PDO
   NewsDB ..> ArrayIterator : <<create>>
   NewsDB ..> DOMDocument : <<create>>
 @enduml
