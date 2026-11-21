@@ -18,6 +18,6 @@
 
   class "SQLite3\n<b>Встроенный класс PHP</b>" as SQLite3
 
-  INewsDB <|-- NewsDB
-  NewsDB *-- SQLite3
+  INewsDB <|.. NewsDB
+  NewsDB *--> SQLite3
 @enduml
