@@ -17,7 +17,7 @@
     +current()
   }
 
-  class "NewsDB\n<b>Класс NewsDB</b>" as NewsDB {
+  class "NewsDB\n<b>NewsDB class</b>" as NewsDB {
     +DB_NAME : string
     +RSS_NAME : string
     +RSS_TITLE : string
@@ -35,11 +35,11 @@
     +createRss()
   }
 
-  class "PDO\n<b>Встроенный класс PHP</b>" as PDO
+  class "PDO\n<b>PHP built-in class</b>" as PDO
 
-  class "ArrayIterator\n<b>Встроенный класс PHP</b>" as ArrayIterator
+  class "ArrayIterator\n<b>PHP built-in class</b>" as ArrayIterator
 
-  class "DOMDocument\n<b>Встроенный класс PHP</b>" as DOMDocument
+  class "DOMDocument\n<b>PHP built-in class</b>" as DOMDocument
 
   INewsDB <|-- NewsDB
   IteratorAggregate <|-- NewsDB
