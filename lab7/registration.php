@@ -76,31 +76,36 @@ if (!empty($message)) {
     <div class="info">
       Введите символы, которые видите на изображении ниже (CAPTCHA).
     </div>
-    
-    <form  method="post">
-      <div class="captcha-box">
-        <img src="noise-picture.php?<?php echo time(); ?>" alt="CAPTCHA">
-        <div class="reload-link">
-          <a href="javascript:location.reload()">Обновить картинку</a>
+
+    <form method="post">
+      <div id="captcha-section">
+        <div class="captcha-box">
+          <img src="noise-picture.php?<?php echo time(); ?>" alt="CAPTCHA">
+          <div class="reload-link">
+            <a href="javascript:location.reload()">Обновить картинку</a>
+          </div>
         </div>
+
+        <div class="form-group">
+          <label for="answer">Введите символы с изображения:</label>
+          <input type="text" name="answer" id="answer" size="6" maxlength="6"
+                 placeholder="XXXXX" autocomplete="off" required>
+        </div>
+
+        <input type="submit" value="Подтвердить">
       </div>
-      
-      <div class="form-group">
-        <label for="answer">Введите символы с изображения:</label>
-        <input type="text" name="answer" id="answer" size="6" maxlength="6" 
-               placeholder="XXXXX" autocomplete="off" required>
-      </div>
-      
-      <input type="submit" value="Подтвердить">
     </form>
-    
+
+    <div id="no-images-message" class="message warning" style="display:none;">
+      Похоже, что отображение изображений в вашем браузере отключено.
+      Пожалуйста, включите отображение изображений, чтобы увидеть CAPTCHA.
+    </div>
 
     <?php if ($message): ?>
     <div class="message <?php echo $messageType; ?>">
       <?php echo $message; ?>
     </div>
     <?php endif; ?>
-    
 
     <div class="info" style="margin-top: 30px;">
       <ul style="margin: 10px 0; padding-left: 20px;">
@@ -111,6 +116,31 @@ if (!empty($message)) {
       </ul>
     </div>
   </div>
+
+  <script>
+  (function () {
+      var testImg = new Image();
+
+      testImg.onload = function () {
+          // Изображения отображаются – показываем CAPTCHA и ставим фокус
+          document.getElementById('captcha-section').style.display = 'block';
+          document.getElementById('no-images-message').style.display = 'none';
+          var input = document.getElementById('answer');
+          if (input) {
+              input.focus();
+          }
+      };
+
+      testImg.onerror = function () {
+          // Изображения отключены – скрываем форму CAPTCHA и показываем предупреждение
+          document.getElementById('captcha-section').style.display = 'none';
+          document.getElementById('no-images-message').style.display = 'block';
+      };
+
+      // 1x1 прозрачный GIF в виде data URI
+      testImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  })();
+  </script>
 </body>
 
 </html>
