@@ -6,9 +6,10 @@ session_start();
 // Проверка метода отправки
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Проверка не отключен ли показ картинок в браузере
-    if (!isset($_SESSION['captcha_enabled'])) {
-        $_SESSION['message'] = 'Пожалуйста, включите отображение изображений в вашем браузере.';
+    // Проверяем, что сервер получил запрос на генерацию картинки
+    // (т.е. noise-picture.php успел записать код в сессию).
+    if (!isset($_SESSION['captcha']) || $_SESSION['captcha'] === '') {
+        $_SESSION['message'] = 'Сервер не получил запрос на картинку. Пожалуйста, включите отображение изображений в браузере и обновите страницу.';
         $_SESSION['messageType'] = 'warning';
     } else {
 
@@ -18,14 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Удаление пробелов и приведение к верхнему регистру
         $userAnswer = strtoupper(trim($userAnswer));
 
-        // Получение правильного ответа из сессии
-        $correctAnswer = $_SESSION['captcha'] ?? '';
+        // Получение правильного ответа из сессии (тоже к верхнему регистру)
+        $correctAnswer = strtoupper($_SESSION['captcha']);
 
         // Проверка введенных данных
         if (empty($userAnswer)) {
             $_SESSION['message'] = 'Пожалуйста, введите символы с изображения!';
             $_SESSION['messageType'] = 'error';
 
+            // CAPTCHA не удаляем — пусть пользователь попробует ещё раз
         } elseif ($userAnswer === $correctAnswer) {
             $_SESSION['message'] = 'Отлично! Вы ввели правильную строку: ' . htmlspecialchars($correctAnswer);
             $_SESSION['messageType'] = 'success';
@@ -37,6 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['message'] = 'Неправильно! Вы ввели: "' . htmlspecialchars($userAnswer) .
                       '", а правильный ответ: "' . htmlspecialchars($correctAnswer) . '"';
             $_SESSION['messageType'] = 'error';
+
+            // CAPTCHA не удаляем, чтобы можно было попробовать снова с той же картинкой
         }
     }
 
