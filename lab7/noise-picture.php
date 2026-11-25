@@ -18,7 +18,7 @@ $textColor = imagecolorallocate($image, 50, 50, 50);
 // Параметры отрисовки
 $fontSize = rand(18, 30);          // Размер шрифта от 18 до 30 пт
 $charSpacing = 35;                          // Расстояние между символами
-$startX = 20;                               // Начальная x
+$startX = 15;                               // Начальная x
 $startY = 30;                               // Начальная y
 
 
