@@ -66,16 +66,15 @@ if (!empty($message)) {
 </head>
 
 <body>
-  <!-- Сообщение для тех, у кого отключен JavaScript -->
   <noscript>
     <div class="container">
       <div class="message warning">
-        <strong>У вас отключен JavaScript!</strong> Для работы формы регистрации и проверки картинки необходимо включить JavaScript в настройках браузера.
+        <strong>У вас отключен JavaScript!</strong> Для работы формы регистрации необходимо включить JavaScript в настройках браузера.
       </div>
     </div>
   </noscript>
 
-  <!-- Основной контент, скрыт по умолчанию -->
+  <!-- Основной контент (скрыт изначально) -->
   <div class="container" id="main-content" style="display: none;">
     <h1>Регистрация</h1>
 
@@ -89,12 +88,7 @@ if (!empty($message)) {
     
     <form method="post">
       <div class="captcha-box">
-        <!-- Обработчики onload и onerror добавлены прямо в тег -->
-        <img src="noise-picture.php?<?php echo time(); ?>" 
-             id="captcha-image" 
-             alt="CAPTCHA" 
-             onload="showCaptchaForm()" 
-             onerror="showCaptchaWarning()">
+        <img src="noise-picture.php?<?php echo time(); ?>" id="captcha-image" alt="CAPTCHA">
         <div class="reload-link">
           <a href="javascript:location.reload()">Обновить картинку</a>
         </div>
@@ -125,43 +119,78 @@ if (!empty($message)) {
     </div>
   </div>
 
-  <!-- Блок предупреждения, скрыт по умолчанию -->
+  <!-- Блок предупреждения (скрыт изначально) -->
   <div class="container" id="no-images-message" style="display:none;">
     <h1>Внимание</h1>
     <div class="message warning" style="font-size: 18px; padding: 20px;">
-      <strong>Не удалось загрузить изображение CAPTCHA.</strong><br><br>
-      Пожалуйста, убедитесь, что в настройках вашего браузера <strong>включено отображение картинок</strong>, и обновите страницу. Если картинки включены, возможно, на сервере произошла ошибка при генерации капчи.
+      <strong>Не удалось отобразить CAPTCHA.</strong><br><br>
+      Пожалуйста, убедитесь, что в настройках вашего браузера <strong>включено отображение картинок</strong> для этого сайта, и обновите страницу. Если картинки включены, возможно, на сервере произошла ошибка при генерации капчи.
     </div>
   </div>
 
   <script>
-  // Функция для показа формы (вызывается при успешной загрузке картинки)
-  function showCaptchaForm() {
-      document.getElementById('main-content').style.display = 'block';
-      document.getElementById('no-images-message').style.display = 'none';
-      
-      var input = document.getElementById('answer');
-      if (input) {
-          input.focus(); // Автофокус
-      }
-  }
-
-  // Функция для показа предупреждения (вызывается при ошибке)
-  function showCaptchaWarning() {
-      document.getElementById('main-content').style.display = 'none';
-      document.getElementById('no-images-message').style.display = 'block';
-  }
-
-  // Дополнительная проверка на случай, если картинка загрузилась из кэша до выполнения скрипта
   document.addEventListener("DOMContentLoaded", function() {
-      var img = document.getElementById('captcha-image');
-      if (img && img.complete) {
-          if (img.naturalWidth === 0) {
-              showCaptchaWarning();
-          } else {
-              showCaptchaForm();
+      var captchaImg = document.getElementById('captcha-image');
+      var mainContent = document.getElementById('main-content');
+      var warningMsg = document.getElementById('no-images-message');
+      var hasResolved = false; // Флаг, чтобы не было двойного срабатывания
+
+      // Страховочный таймер (если через 3 секунды ничего не произошло, показываем предупреждение)
+      var timeoutId = setTimeout(function() {
+          if (!hasResolved) {
+              showWarning();
+          }
+      }, 3000);
+
+      function showForm() {
+          if (hasResolved) return;
+          hasResolved = true;
+          clearTimeout(timeoutId);
+          
+          mainContent.style.display = 'block';
+          warningMsg.style.display = 'none';
+          var input = document.getElementById('answer');
+          if (input) {
+              input.focus();
           }
       }
+
+      function showWarning() {
+          if (hasResolved) return;
+          hasResolved = true;
+          clearTimeout(timeoutId);
+
+          mainContent.style.display = 'none';
+          warningMsg.style.display = 'block';
+      }
+
+      // 1. Создаем тестовую картинку 1x1, чтобы проверить, не заблокированы ли картинки в браузере вообще
+      var testImg = new Image();
+      
+      testImg.onload = function() {
+          // Картинки в браузере разрешены. Теперь проверяем саму капчу.
+          if (captchaImg.complete) {
+              if (captchaImg.naturalWidth === 0) {
+                  // Капча не загрузилась (ошибка на сервере)
+                  showWarning();
+              } else {
+                  // Капча загрузилась из кэша
+                  showForm();
+              }
+          } else {
+              // Капча еще грузится, ждем ее
+              captchaImg.onload = showForm;
+              captchaImg.onerror = showWarning;
+          }
+      };
+      
+      testImg.onerror = function() {
+          // Браузер заблокировал загрузку тестовой картинки (картинки отключены в настройках)
+          showWarning();
+      };
+      
+      // Запускаем загрузку тестовой картинки (прозрачный пиксель)
+      testImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   });
   </script>
 </body>
