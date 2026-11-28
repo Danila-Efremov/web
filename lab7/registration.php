@@ -66,7 +66,16 @@ if (!empty($message)) {
 </head>
 
 <body>
-  <!-- Основной контент скрыт по умолчанию, пока не проверим картинку -->
+  <!-- Сообщение для тех, у кого отключен JavaScript -->
+  <noscript>
+    <div class="container">
+      <div class="message warning">
+        <strong>У вас отключен JavaScript!</strong> Для работы формы регистрации и проверки картинки необходимо включить JavaScript в настройках браузера.
+      </div>
+    </div>
+  </noscript>
+
+  <!-- Основной контент, скрыт по умолчанию -->
   <div class="container" id="main-content" style="display: none;">
     <h1>Регистрация</h1>
 
@@ -80,8 +89,12 @@ if (!empty($message)) {
     
     <form method="post">
       <div class="captcha-box">
-        <!-- Добавлен id для отслеживания загрузки -->
-        <img src="noise-picture.php?<?php echo time(); ?>" id="captcha-image" alt="CAPTCHA">
+        <!-- Обработчики onload и onerror добавлены прямо в тег -->
+        <img src="noise-picture.php?<?php echo time(); ?>" 
+             id="captcha-image" 
+             alt="CAPTCHA" 
+             onload="showCaptchaForm()" 
+             onerror="showCaptchaWarning()">
         <div class="reload-link">
           <a href="javascript:location.reload()">Обновить картинку</a>
         </div>
@@ -112,7 +125,7 @@ if (!empty($message)) {
     </div>
   </div>
 
-  <!-- Блок предупреждения -->
+  <!-- Блок предупреждения, скрыт по умолчанию -->
   <div class="container" id="no-images-message" style="display:none;">
     <h1>Внимание</h1>
     <div class="message warning" style="font-size: 18px; padding: 20px;">
@@ -122,38 +135,31 @@ if (!empty($message)) {
   </div>
 
   <script>
+  // Функция для показа формы (вызывается при успешной загрузке картинки)
+  function showCaptchaForm() {
+      document.getElementById('main-content').style.display = 'block';
+      document.getElementById('no-images-message').style.display = 'none';
+      
+      var input = document.getElementById('answer');
+      if (input) {
+          input.focus(); // Автофокус
+      }
+  }
+
+  // Функция для показа предупреждения (вызывается при ошибке)
+  function showCaptchaWarning() {
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('no-images-message').style.display = 'block';
+  }
+
+  // Дополнительная проверка на случай, если картинка загрузилась из кэша до выполнения скрипта
   document.addEventListener("DOMContentLoaded", function() {
-      var captchaImg = document.getElementById('captcha-image');
-      var mainContent = document.getElementById('main-content');
-      var warningMsg = document.getElementById('no-images-message');
-
-      function showForm() {
-          mainContent.style.display = 'block';
-          warningMsg.style.display = 'none';
-          var input = document.getElementById('answer');
-          if (input) {
-              input.focus(); // Автофокус на поле ввода
-          }
-      }
-
-      function showWarning() {
-          mainContent.style.display = 'none';
-          warningMsg.style.display = 'block';
-      }
-
-      if (captchaImg) {
-          // Проверяем, не загрузилась ли картинка из кеша до запуска скрипта
-          if (captchaImg.complete) {
-              // Если naturalWidth = 0, значит картинка битая
-              if (typeof captchaImg.naturalWidth !== "undefined" && captchaImg.naturalWidth === 0) {
-                  showWarning();
-              } else {
-                  showForm();
-              }
+      var img = document.getElementById('captcha-image');
+      if (img && img.complete) {
+          if (img.naturalWidth === 0) {
+              showCaptchaWarning();
           } else {
-              // Если картинка еще грузится, вешаем обработчики
-              captchaImg.onload = showForm;
-              captchaImg.onerror = showWarning;
+              showCaptchaForm();
           }
       }
   });
