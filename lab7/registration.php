@@ -149,8 +149,6 @@ if (!empty($message)) {
   // Проверяем после полной загрузки страницы
   window.addEventListener('load', checkCaptchaImage);
 
-  // Страховка: проверяем еще раз через 2 секунды (вдруг картинка грузится слишком долго или упала по таймауту)
-  setTimeout(checkCaptchaImage, 2000);
   </script>
 </body>
 
