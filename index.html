@@ -1,185 +1,150 @@
-<!DOCTYPE html>
-<html lang="ru">
+<?php
+declare(strict_types=1);
+
+session_start();
+
+// Проверка метода отправки
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // Проверка не отключен ли показ картинок в браузере
+    if (!isset($_SESSION['captcha_enabled'])) {
+        $_SESSION['message'] = 'Пожалуйста, включите отображение изображений в вашем браузере.';
+        $_SESSION['messageType'] = 'warning';
+    } else {
+
+        // Получение введенного пользователем ответа
+        $userAnswer = $_POST['answer'] ?? '';
+
+        // Удаление пробелов и приведение к верхнему регистру
+        $userAnswer = strtoupper(trim($userAnswer));
+
+        // Получение правильного ответа из сессии
+        $correctAnswer = $_SESSION['captcha'] ?? '';
+
+        // Проверка введенных данных
+        if (empty($userAnswer)) {
+            $_SESSION['message'] = 'Пожалуйста, введите символы с изображения!';
+            $_SESSION['messageType'] = 'error';
+
+        } elseif ($userAnswer === $correctAnswer) {
+            $_SESSION['message'] = 'Отлично! Вы ввели правильную строку: ' . htmlspecialchars($correctAnswer);
+            $_SESSION['messageType'] = 'success';
+
+            // Очистка captcha после успешной проверки
+            unset($_SESSION['captcha']);
+
+        } else {
+            $_SESSION['message'] = 'Неправильно! Вы ввели: "' . htmlspecialchars($userAnswer) .
+                      '", а правильный ответ: "' . htmlspecialchars($correctAnswer) . '"';
+            $_SESSION['messageType'] = 'error';
+        }
+    }
+
+    // Редирект для предотвращения повторной отправки формы
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// Получение сообщения из сессии и его очистка
+$message = $_SESSION['message'] ?? '';
+$messageType = $_SESSION['messageType'] ?? '';
+
+// Очистка сообщения из сессии после извлечения
+if (!empty($message)) {
+    unset($_SESSION['message']);
+    unset($_SESSION['messageType']);
+}
+?>
+
+<!DOCTYPE HTML>
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="styles.css">
-    <title>Web-программирование</title>
-
-    <script>
-        // Проверяем сохраненную тему при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.body.classList.toggle('dark-theme', savedTheme === 'dark');
-
-            // Обработчик переключения темы
-            document.getElementById('theme-toggle').addEventListener('click', function() {
-                document.body.classList.toggle('dark-theme');
-                const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
-                localStorage.setItem('theme', currentTheme);
-            });
-        });
-    </script>
+  <meta charset="utf-8">
+  <title>Регистрация с CAPTCHA</title>
+  <link rel="stylesheet" href="css/reg-style.css">
 </head>
+
 <body>
-    <div class="container">
+  <!-- Основной контент страницы, который будет скрыт при отключенных картинках -->
+  <div class="container" id="main-content">
+    <h1>Регистрация</h1>
 
-        
-        <div class="header">
-            <h1>Лабораторные работы<button id="theme-toggle" class="theme-toggle" aria-label="Переключить тему">
-                <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button></h1>
-            <p>Web-программирование</p>
-        </div>
+    <p>
+      <a href="../index.html" class="back-link">На главную</a>
+    </p>
 
-        
-        <div class="labs-grid">
-            <!-- Лабораторная работа 1 -->
-            <div class="lab-card completed">
-                <div class="lab-title-row">
-                    <div class="lab-title">Лабораторная работа №1</div>
-                    <span class="status-badge status-completed">Выполнено</span>
-                </div>
-                <div class="lab-description">
-                   Классы и интерфейсы
-                </div>
-                <ul class="lab-tasks">
-                    <li><a href="lab1/users.php" class="task-link">I-VIII. Работа с классами и интерфейсами</a></li>
-                    <li><a href="lab1/uml.html" class="task-link">IX. UML диаграмма</a></li>
-                </ul>
-            </div>
-
-            <!-- Лабораторная работа 2 -->
-            <div class="lab-card completed">
-                <div class="lab-title-row">
-                    <div class="lab-title">Лабораторная работа №2</div>
-                    <span class="status-badge status-completed">Выполнено</span>
-                </div>
-                <div class="lab-description">
-                    Шаблоны проектирования
-                </div>
-                <ul class="lab-tasks">
-                    <li><a href="lab2/diagrams.html" class="task-link">Примеры использования и диаграммы</a></li>
-                </ul>
-            </div>
-
-            <!-- Лабораторная работа 3 -->
-            <div class="lab-card completed">
-                <div class="lab-title-row">
-                    <div class="lab-title">Лабораторная работа №3</div>
-                    <span class="status-badge status-completed">Выполнено</span>
-                </div>
-                <div class="lab-description">
-                    Использование ООП с базой данных SQLite
-                </div>
-                <ul class="lab-tasks">
-                    <li><a href="lab3/news.php" class="task-link">Открыть news.php</a></li>
-                    <li><a href="lab3/uml.html" class="task-link">Диаграмма классов</a></li>
-                </ul>
-            </div>
-
-            <!-- Лабораторная работа 4 -->
-            <div class="lab-card completed">
-                <div class="lab-title-row">
-                    <div class="lab-title">Лабораторная работа №4</div>
-                    <span class="status-badge status-completed">Выполнено</span>
-                </div>
-                <div class="lab-description">
-                    Standard PHP Library
-                </div>
-                <ul class="lab-tasks">
-                    <li><a href="lab4/NumbersSquared.php" class="task-link">Демонстрация NumbersSquared.php</a></li>
-                    <li><a href="lab4/news.php" class="task-link">Открыть news.php</a></li>
-                    <li><a href="lab4/uml.html" class="task-link">Диаграмма классов</a></li>
-                </ul>
-            </div>
-
-            <!-- Лабораторная работа 5 -->
-            <div class="lab-card completed">
-                <div class="lab-title-row">
-                    <div class="lab-title">Лабораторная работа №5</div>
-                    <span class="status-badge status-completed">Выполнено</span>
-                </div>
-                <div class="lab-description">
-                    Обработка XML
-                </div>
-                <ul class="lab-tasks">
-                    <li><a href="lab5/news.php" class="task-link">Открыть news.php</a></li>
-                    <li><a href="lab5/rss.xml" target="_blank" class="task-link">Открыть rss.xml (feed)</a></li>
-                    <li><a href="lab5/uml.html" class="task-link">Диаграмма классов</a></li>
-                </ul>
-            </div>
-
-
-            <div class="lab-card completed">
-                <div class="lab-title-row">
-                    <div class="lab-title">Лабораторная работа №6</div>
-                    <span class="status-badge status-completed">Выполнено</span>
-                </div>
-                <div class="lab-description">
-                    PHP Data Objects
-                </div>
-                <ul class="lab-tasks">
-                    <li><a href="lab6/news.php" class="task-link">Открыть news.php</a></li>
-                    <li><a href="lab6/rss.xml" target="_blank" class="task-link">Открыть rss.xml</a></li>
-                    <li><a href="lab6/uml.html" class="task-link">Диаграмма классов</a></li>
-                </ul>
-            </div>
-        
-
-
-            <div class="lab-card completed">
-                <div class="lab-title-row">
-                    <div class="lab-title">Лабораторная работа №7</div>
-                    <span class="status-badge status-completed">Выполнено</span>
-                </div>
-                <div class="lab-description">
-                    Работа с библиотекой GD
-                </div>
-                <ul class="lab-tasks">
-                    <li><a href="lab7/registration.php" class="task-link">Форма регистрации</a></li>
-                </ul>
-            </div>
-
-            <div class="lab-card completed">
-                <div class="lab-title-row">
-                    <div class="lab-title">Лабораторная работа №8</div>
-                    <span class="status-badge status-completed">Выполнено</span>
-                </div>
-                <div class="lab-description">
-                    Использование MVC фреймворка
-                </div>
-                <ul class="lab-tasks">
-                    <li><a href="lab8/index.php" class="task-link">→ Открыть ←</a></li>
-                </ul>
-            </div>
-
-            
-        </div>
-
-        <div class="footer">
-            <div class="footer-links">
-                <a href="https://github.com/Danila-Efremov/web" target="_blank" class="github-link">
-                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/github.svg" alt="GitHub" class="github-icon">
-                </a>
-                <p>&copy; Efremov Danilf, 31ПМ</p>
-            </div>
-        </div>
-        
+    <div class="info">
+      Введите символы, которые видите на изображении ниже (CAPTCHA).
     </div>
+    
+    <form method="post">
+      <div class="captcha-box">
+        <img src="noise-picture.php?<?php echo time(); ?>" alt="CAPTCHA">
+        <div class="reload-link">
+          <a href="javascript:location.reload()">Обновить картинку</a>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="answer">Введите символы с изображения:</label>
+        <input type="text" name="answer" id="answer" size="6" maxlength="6" 
+               placeholder="XXXXX" autocomplete="off" required>
+      </div>
+      
+      <input type="submit" value="Подтвердить">
+    </form>
+    
+    <?php if ($message): ?>
+    <div class="message <?php echo $messageType; ?>">
+      <?php echo $message; ?>
+    </div>
+    <?php endif; ?>
+    
+    <div class="info" style="margin-top: 30px;">
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Регистр не имеет значения</li>
+        <li>Только латинские буквы и цифры</li>
+        <li>Символы 0/O, I/l исключены</li>
+        <li>Если не видно - обновите страницу</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Блок, который покажется ВМЕСТО основного контента, если картинки отключены -->
+  <div class="container" id="no-images-message" style="display:none;">
+    <h1>Внимание</h1>
+    <div class="message warning" style="font-size: 18px; padding: 20px;">
+      <strong>В вашем браузере отключено отображение изображений.</strong><br><br>
+      Пожалуйста, включите показ картинок в настройках браузера и обновите страницу, чтобы увидеть CAPTCHA и продолжить регистрацию.
+    </div>
+  </div>
+
+  <script>
+  (function () {
+      var testImg = new Image();
+
+      testImg.onload = function () {
+          // Изображения отображаются – показываем основной контент и ставим фокус
+          document.getElementById('main-content').style.display = 'block';
+          document.getElementById('no-images-message').style.display = 'none';
+          
+          var input = document.getElementById('answer');
+          if (input) {
+              input.focus();
+          }
+      };
+
+      testImg.onerror = function () {
+          // Изображения отключены – скрываем ВЕСЬ основной контент и показываем предупреждение
+          document.getElementById('main-content').style.display = 'none';
+          document.getElementById('no-images-message').style.display = 'block';
+      };
+
+      // 1x1 прозрачный GIF в виде data URI
+      testImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  })();
+  </script>
 </body>
+
 </html>
