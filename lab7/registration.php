@@ -6,10 +6,9 @@ session_start();
 // Проверка метода отправки
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Проверяем, что сервер получил запрос на генерацию картинки
-    // (т.е. noise-picture.php успел записать код в сессию).
-    if (!isset($_SESSION['captcha']) || $_SESSION['captcha'] === '') {
-        $_SESSION['message'] = 'Сервер не получил запрос на картинку. Пожалуйста, включите отображение изображений в браузере и обновите страницу.';
+    // Проверка не отключен ли показ картинок в браузере
+    if (!isset($_SESSION['captcha_enabled'])) {
+        $_SESSION['message'] = 'Пожалуйста, включите отображение изображений в вашем браузере.';
         $_SESSION['messageType'] = 'warning';
     } else {
 
@@ -19,15 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Удаление пробелов и приведение к верхнему регистру
         $userAnswer = strtoupper(trim($userAnswer));
 
-        // Получение правильного ответа из сессии (тоже к верхнему регистру)
-        $correctAnswer = strtoupper($_SESSION['captcha']);
+        // Получение правильного ответа из сессии
+        $correctAnswer = $_SESSION['captcha'] ?? '';
 
         // Проверка введенных данных
         if (empty($userAnswer)) {
             $_SESSION['message'] = 'Пожалуйста, введите символы с изображения!';
             $_SESSION['messageType'] = 'error';
 
-            // CAPTCHA не удаляем — пусть пользователь попробует ещё раз
         } elseif ($userAnswer === $correctAnswer) {
             $_SESSION['message'] = 'Отлично! Вы ввели правильную строку: ' . htmlspecialchars($correctAnswer);
             $_SESSION['messageType'] = 'success';
@@ -39,8 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['message'] = 'Неправильно! Вы ввели: "' . htmlspecialchars($userAnswer) .
                       '", а правильный ответ: "' . htmlspecialchars($correctAnswer) . '"';
             $_SESSION['messageType'] = 'error';
-
-            // CAPTCHA не удаляем, чтобы можно было попробовать снова с той же картинкой
         }
     }
 
@@ -70,7 +66,8 @@ if (!empty($message)) {
 </head>
 
 <body>
-  <div class="container">
+  <!-- Основной контент страницы, который будет скрыт при отключенных картинках -->
+  <div class="container" id="main-content">
     <h1>Регистрация</h1>
 
     <p>
@@ -80,37 +77,30 @@ if (!empty($message)) {
     <div class="info">
       Введите символы, которые видите на изображении ниже (CAPTCHA).
     </div>
-
+    
     <form method="post">
-      <div id="captcha-section">
-        <div class="captcha-box">
-          <img src="noise-picture.php?<?php echo time(); ?>" alt="CAPTCHA">
-          <div class="reload-link">
-            <a href="javascript:location.reload()">Обновить картинку</a>
-          </div>
+      <div class="captcha-box">
+        <img src="noise-picture.php?<?php echo time(); ?>" alt="CAPTCHA">
+        <div class="reload-link">
+          <a href="javascript:location.reload()">Обновить картинку</a>
         </div>
-
-        <div class="form-group">
-          <label for="answer">Введите символы с изображения:</label>
-          <input type="text" name="answer" id="answer" size="6" maxlength="6"
-                 placeholder="XXXXX" autocomplete="off" required>
-        </div>
-
-        <input type="submit" value="Подтвердить">
       </div>
+      
+      <div class="form-group">
+        <label for="answer">Введите символы с изображения:</label>
+        <input type="text" name="answer" id="answer" size="6" maxlength="6" 
+               placeholder="XXXXX" autocomplete="off" required>
+      </div>
+      
+      <input type="submit" value="Подтвердить">
     </form>
-
-    <div id="no-images-message" class="message warning" style="display:none;">
-      Похоже, что отображение изображений в вашем браузере отключено.
-      Пожалуйста, включите отображение изображений, чтобы увидеть CAPTCHA.
-    </div>
-
+    
     <?php if ($message): ?>
     <div class="message <?php echo $messageType; ?>">
       <?php echo $message; ?>
     </div>
     <?php endif; ?>
-
+    
     <div class="info" style="margin-top: 30px;">
       <ul style="margin: 10px 0; padding-left: 20px;">
         <li>Регистр не имеет значения</li>
@@ -121,14 +111,24 @@ if (!empty($message)) {
     </div>
   </div>
 
+  <!-- Блок, который покажется ВМЕСТО основного контента, если картинки отключены -->
+  <div class="container" id="no-images-message" style="display:none;">
+    <h1>Внимание</h1>
+    <div class="message warning" style="font-size: 18px; padding: 20px;">
+      <strong>В вашем браузере отключено отображение изображений.</strong><br><br>
+      Пожалуйста, включите показ картинок в настройках браузера и обновите страницу, чтобы увидеть CAPTCHA и продолжить регистрацию.
+    </div>
+  </div>
+
   <script>
   (function () {
       var testImg = new Image();
 
       testImg.onload = function () {
-          // Изображения отображаются – показываем CAPTCHA и ставим фокус
-          document.getElementById('captcha-section').style.display = 'block';
+          // Изображения отображаются – показываем основной контент и ставим фокус
+          document.getElementById('main-content').style.display = 'block';
           document.getElementById('no-images-message').style.display = 'none';
+          
           var input = document.getElementById('answer');
           if (input) {
               input.focus();
@@ -136,8 +136,8 @@ if (!empty($message)) {
       };
 
       testImg.onerror = function () {
-          // Изображения отключены – скрываем форму CAPTCHA и показываем предупреждение
-          document.getElementById('captcha-section').style.display = 'none';
+          // Изображения отключены – скрываем ВЕСЬ основной контент и показываем предупреждение
+          document.getElementById('main-content').style.display = 'none';
           document.getElementById('no-images-message').style.display = 'block';
       };
 
