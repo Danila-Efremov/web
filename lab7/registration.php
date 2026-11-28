@@ -69,13 +69,13 @@ if (!empty($message)) {
   <noscript>
     <div class="container">
       <div class="message warning">
-        <strong>У вас отключен JavaScript!</strong> Для работы формы регистрации необходимо включить JavaScript в настройках браузера.
+        <strong>У вас отключен JavaScript!</strong> Для корректной работы проверки картинки рекомендуется включить его в настройках браузера.
       </div>
     </div>
   </noscript>
 
-  <!-- Основной контент (скрыт изначально) -->
-  <div class="container" id="main-content" style="display: none;">
+  <!-- Основной контент (ВИДЕН по умолчанию) -->
+  <div class="container" id="main-content">
     <h1>Регистрация</h1>
 
     <p>
@@ -96,8 +96,9 @@ if (!empty($message)) {
       
       <div class="form-group">
         <label for="answer">Введите символы с изображения:</label>
+        <!-- Добавлен autofocus для мгновенного выделения -->
         <input type="text" name="answer" id="answer" size="6" maxlength="6" 
-               placeholder="XXXXX" autocomplete="off" required>
+               placeholder="XXXXX" autocomplete="off" required autofocus>
       </div>
       
       <input type="submit" value="Подтвердить">
@@ -119,7 +120,7 @@ if (!empty($message)) {
     </div>
   </div>
 
-  <!-- Блок предупреждения (скрыт изначально) -->
+  <!-- Блок предупреждения (СКРЫТ по умолчанию) -->
   <div class="container" id="no-images-message" style="display:none;">
     <h1>Внимание</h1>
     <div class="message warning" style="font-size: 18px; padding: 20px;">
@@ -129,69 +130,27 @@ if (!empty($message)) {
   </div>
 
   <script>
-  document.addEventListener("DOMContentLoaded", function() {
-      var captchaImg = document.getElementById('captcha-image');
+  // Функция проверки картинки
+  function checkCaptchaImage() {
+      var img = document.getElementById('captcha-image');
+      var warning = document.getElementById('no-images-message');
       var mainContent = document.getElementById('main-content');
-      var warningMsg = document.getElementById('no-images-message');
-      var hasResolved = false; // Флаг, чтобы не было двойного срабатывания
 
-      // Страховочный таймер (если через 3 секунды ничего не произошло, показываем предупреждение)
-      var timeoutId = setTimeout(function() {
-          if (!hasResolved) {
-              showWarning();
-          }
-      }, 3000);
-
-      function showForm() {
-          if (hasResolved) return;
-          hasResolved = true;
-          clearTimeout(timeoutId);
-          
-          mainContent.style.display = 'block';
-          warningMsg.style.display = 'none';
-          var input = document.getElementById('answer');
-          if (input) {
-              input.focus();
-          }
-      }
-
-      function showWarning() {
-          if (hasResolved) return;
-          hasResolved = true;
-          clearTimeout(timeoutId);
-
+      // Если картинка не загружена или её ширина равна 0 (битая картинка)
+      if (!img.complete || img.naturalWidth === 0) {
+          warning.style.display = 'block';
           mainContent.style.display = 'none';
-          warningMsg.style.display = 'block';
+      } else {
+          warning.style.display = 'none';
+          mainContent.style.display = 'block';
       }
+  }
 
-      // 1. Создаем тестовую картинку 1x1, чтобы проверить, не заблокированы ли картинки в браузере вообще
-      var testImg = new Image();
-      
-      testImg.onload = function() {
-          // Картинки в браузере разрешены. Теперь проверяем саму капчу.
-          if (captchaImg.complete) {
-              if (captchaImg.naturalWidth === 0) {
-                  // Капча не загрузилась (ошибка на сервере)
-                  showWarning();
-              } else {
-                  // Капча загрузилась из кэша
-                  showForm();
-              }
-          } else {
-              // Капча еще грузится, ждем ее
-              captchaImg.onload = showForm;
-              captchaImg.onerror = showWarning;
-          }
-      };
-      
-      testImg.onerror = function() {
-          // Браузер заблокировал загрузку тестовой картинки (картинки отключены в настройках)
-          showWarning();
-      };
-      
-      // Запускаем загрузку тестовой картинки (прозрачный пиксель)
-      testImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-  });
+  // Проверяем после полной загрузки страницы
+  window.addEventListener('load', checkCaptchaImage);
+
+  // Страховка: проверяем еще раз через 2 секунды (вдруг картинка грузится слишком долго или упала по таймауту)
+  setTimeout(checkCaptchaImage, 2000);
   </script>
 </body>
 
