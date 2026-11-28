@@ -66,8 +66,8 @@ if (!empty($message)) {
 </head>
 
 <body>
-  <!-- Основной контент страницы, который будет скрыт при отключенных картинках -->
-  <div class="container" id="main-content">
+  <!-- Основной контент скрыт по умолчанию, пока не проверим картинку -->
+  <div class="container" id="main-content" style="display: none;">
     <h1>Регистрация</h1>
 
     <p>
@@ -80,7 +80,8 @@ if (!empty($message)) {
     
     <form method="post">
       <div class="captcha-box">
-        <img src="noise-picture.php?<?php echo time(); ?>" alt="CAPTCHA">
+        <!-- Добавлен id для отслеживания загрузки -->
+        <img src="noise-picture.php?<?php echo time(); ?>" id="captcha-image" alt="CAPTCHA">
         <div class="reload-link">
           <a href="javascript:location.reload()">Обновить картинку</a>
         </div>
@@ -111,39 +112,51 @@ if (!empty($message)) {
     </div>
   </div>
 
-  <!-- Блок, который покажется ВМЕСТО основного контента, если картинки отключены -->
+  <!-- Блок предупреждения -->
   <div class="container" id="no-images-message" style="display:none;">
     <h1>Внимание</h1>
     <div class="message warning" style="font-size: 18px; padding: 20px;">
-      <strong>В вашем браузере отключено отображение изображений.</strong><br><br>
-      Пожалуйста, включите показ картинок в настройках браузера и обновите страницу, чтобы увидеть CAPTCHA и продолжить регистрацию.
+      <strong>Не удалось загрузить изображение CAPTCHA.</strong><br><br>
+      Пожалуйста, убедитесь, что в настройках вашего браузера <strong>включено отображение картинок</strong>, и обновите страницу. Если картинки включены, возможно, на сервере произошла ошибка при генерации капчи.
     </div>
   </div>
 
   <script>
-  (function () {
-      var testImg = new Image();
+  document.addEventListener("DOMContentLoaded", function() {
+      var captchaImg = document.getElementById('captcha-image');
+      var mainContent = document.getElementById('main-content');
+      var warningMsg = document.getElementById('no-images-message');
 
-      testImg.onload = function () {
-          // Изображения отображаются – показываем основной контент и ставим фокус
-          document.getElementById('main-content').style.display = 'block';
-          document.getElementById('no-images-message').style.display = 'none';
-          
+      function showForm() {
+          mainContent.style.display = 'block';
+          warningMsg.style.display = 'none';
           var input = document.getElementById('answer');
           if (input) {
-              input.focus();
+              input.focus(); // Автофокус на поле ввода
           }
-      };
+      }
 
-      testImg.onerror = function () {
-          // Изображения отключены – скрываем ВЕСЬ основной контент и показываем предупреждение
-          document.getElementById('main-content').style.display = 'none';
-          document.getElementById('no-images-message').style.display = 'block';
-      };
+      function showWarning() {
+          mainContent.style.display = 'none';
+          warningMsg.style.display = 'block';
+      }
 
-      // 1x1 прозрачный GIF в виде data URI
-      testImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-  })();
+      if (captchaImg) {
+          // Проверяем, не загрузилась ли картинка из кеша до запуска скрипта
+          if (captchaImg.complete) {
+              // Если naturalWidth = 0, значит картинка битая
+              if (typeof captchaImg.naturalWidth !== "undefined" && captchaImg.naturalWidth === 0) {
+                  showWarning();
+              } else {
+                  showForm();
+              }
+          } else {
+              // Если картинка еще грузится, вешаем обработчики
+              captchaImg.onload = showForm;
+              captchaImg.onerror = showWarning;
+          }
+      }
+  });
   </script>
 </body>
 
